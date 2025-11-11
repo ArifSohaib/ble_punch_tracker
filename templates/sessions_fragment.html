@@ -1,0 +1,9 @@
+<tbody>
+{% for session in sessions %}
+<tr style="cursor:pointer;" onclick="loadSession('{{ session.id }}')">
+    <td>{{ session.start_time }}</td>
+    <td>{{ session.end_time or 'Active' }}</td>
+    <td>{{ session.id }}</td>
+</tr>
+{% endfor %}
+</tbody>

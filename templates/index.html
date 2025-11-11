@@ -9,6 +9,7 @@
         body { padding: 2rem; background: #f8f9fa; }
         .btn-lg { width: 180px; height: 60px; font-size: 1.3rem; margin: 0.5rem; }
         #graph-container { margin-top: 2rem; }
+        #status { margin-top: 1rem; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -16,13 +17,11 @@
     <h1 class="mb-4">Punch Tracker</h1>
 
     <div class="d-flex justify-content-center">
-        <form action="/start" method="post">
-            <button type="submit" class="btn btn-success btn-lg">Start Workout</button>
-        </form>
-        <form action="/stop" method="post">
-            <button type="submit" class="btn btn-danger btn-lg">Stop Workout</button>
-        </form>
+        <button id="startBtn" class="btn btn-success btn-lg" onclick="startWorkout()">Start Workout</button>
+        <button id="stopBtn" class="btn btn-danger btn-lg" onclick="stopWorkout()">Stop Workout</button>
     </div>
+
+    <div id="status" class="text-primary"></div>
 
     <h3 class="mt-5">Workout Sessions</h3>
     <div class="table-responsive">
@@ -34,7 +33,7 @@
                     <th>Session ID</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody  id="sessions-body">
                 {% for session in sessions %}
                 <tr style="cursor:pointer;" onclick="loadSession('{{ session.id }}')">
                     <td>{{ session.start_time }}</td>
@@ -53,15 +52,58 @@
 
 <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.0.min.js"></script>
 <script>
+async function startWorkout() {
+    const status = document.getElementById("status");
+    status.innerHTML = '<span class="text-info">Connecting to BLE device and starting collection...</span>';
+    try {
+        const res = await fetch("/start", { method: "POST" });
+        const data = await res.json();
+        if (data.status === "started") {
+            status.innerHTML = '<span class="text-success">✅ Workout started. Collecting data...</span>';
+        } else {
+            status.innerHTML = '<span class="text-danger">⚠️ Failed to start workout.</span>';
+        }
+    } catch (err) {
+        status.innerHTML = '<span class="text-danger">❌ Error: ' + err + '</span>';
+    }
+}
+
+async function stopWorkout() {
+    const status = document.getElementById("status");
+    status.innerHTML = '<span class="text-warning">Stopping collection...</span>';
+    try {
+        const res = await fetch("/stop", { method: "POST" });
+        const data = await res.json();
+        if (data.status === "stopped") {
+            status.innerHTML = '<span class="text-success">🛑 Workout stopped. Updating sessions...</span>';
+            await refreshSessions();
+            status.innerHTML = '<span class="text-success">✅ Workout stopped. Sessions updated.</span>';
+        } else {
+            status.innerHTML = '<span class="text-danger">⚠️ Failed to stop workout.</span>';
+        }
+    } catch (err) {
+        status.innerHTML = '<span class="text-danger">❌ Error: ' + err + '</span>';
+    }
+}
+
 async function loadSession(id) {
     const container = document.getElementById('graph-container');
     container.innerHTML = '<p class="text-muted">Loading...</p>';
     const res = await fetch(`/session/${id}`);
     const plotJSON = await res.json();
-    container.innerHTML = "";  // clear old graph
+    container.innerHTML = "";
     Bokeh.embed.embed_item(plotJSON, "graph-container");
 }
+async function refreshSessions() {
+    const tbody = document.getElementById("sessions-body");
+    try {
+        const res = await fetch("/sessions_fragment");
+        const html = await res.text();
+        tbody.innerHTML = html;
+    } catch (err) {
+        console.error("Failed to refresh sessions:", err);
+    }
+}
 </script>
-
 </body>
 </html>

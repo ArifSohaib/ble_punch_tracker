@@ -33,16 +33,14 @@ async def home(request: Request):
 
 @app.get("/debug/sessions")
 async def debug_sessions():
-    with engine.connect() as conn:
-        result = conn.execute(text("SELECT * FROM sessions ORDER BY start_time DESC LIMIT 10"))
-        rows = [dict(row._mapping) for row in result]
+    with SessionLocal() as  db:
+        rows = db.query(WorkoutSession).all()
     return JSONResponse(rows)
 
 @app.get("/debug/readings")
 async def debug_sessions():
-    with engine.connect() as conn:
-        result = conn.execute(text("SELECT * FROM readings ORDER BY session_id DESC"))
-        rows = [dict(row._mapping) for row in result]
+    with SessionLocal() as db:
+        rows = db.query(Reading).all() 
     return JSONResponse(rows)
 
 @app.get("/session/{session_id}")
@@ -61,6 +59,16 @@ def get_session(session_id: str):
     p.line(indices, values_z, line_width=2, color='blue', legend_label='z-axis acc')
 
     return json_item(p)
+
+
+@app.get("/sessions_fragment")
+async def sessions_fragment(request: Request):
+    with SessionLocal() as db:
+        sessions =  db.query(WorkoutSession).all()
+    return templates.TemplateResponse(
+        "sessions_fragment.html",
+        {"request": request, "sessions": sessions}
+    )
 
 @app.post("/start")
 async def start_collection(background_tasks: BackgroundTasks):
