@@ -34,14 +34,22 @@ async def home(request: Request):
 @app.get("/debug/sessions")
 async def debug_sessions():
     with SessionLocal() as  db:
-        rows = db.query(WorkoutSession).all()
-    return JSONResponse(rows)
+        df = pd.read_sql_query(
+            "select * from sessions order by start_time",
+            db.connection()
+        )
+        print(df)
+    return JSONResponse(df.to_dict())
 
-@app.get("/debug/readings")
-async def debug_sessions():
+@app.get("/debug/readings/{session_id}")
+async def debug_sessions(session_id:str):
     with SessionLocal() as db:
-        rows = db.query(Reading).all() 
-    return JSONResponse(rows)
+        df = pd.read_sql_query(
+            f"SELECT * FROM Readings WHERE session_id = '{session_id}' ORDER BY timestamp ASC", 
+            db.connection()
+        )
+        print(df)
+    return JSONResponse(df.to_dict())
 
 @app.get("/session/{session_id}")
 def get_session(session_id: str):
