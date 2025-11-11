@@ -73,7 +73,7 @@ class BLECollector:
         db = SessionLocal()
         session = db.query(WorkoutSession).filter_by(id=self.session_id).first()
         if session:
-            session.end_time = datetime.utcnow()
+            session.end_time = datetime.now()
             db.commit()
         db.close()
 
