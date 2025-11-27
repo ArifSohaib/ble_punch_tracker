@@ -65,12 +65,13 @@ If the application is running correctly you will see some logs and within the lo
 server started at http://0.0.0.0:8000
 
 ```
-Open your web browser and go to the page **http:\\localhost:8000**
+Open your web browser and go to the page **http:\\localhost:8000** to use the application
 
 
+## Usage
 
 You will see two buttons;
-Start Workout and Stop Workout
+`Start Workout` and `Stop Workout`
 
 Before clicking start workout make sure that the Arduino is connected to some power source and is safely placed under the punching bag. Therre should be a zipper you can open underneath and place the arduino there. 
 
@@ -82,3 +83,6 @@ You will see an "active" workout which is the one being tracked.
 Before doing a full workout test everything out by punching the bag for a minute or so, then stopping the workout and clicking the  session start time
 
 This will show you a graph representaing the directions and accelerations the bag experienced. 
+
+# TO DO:
+Update the LLM components
